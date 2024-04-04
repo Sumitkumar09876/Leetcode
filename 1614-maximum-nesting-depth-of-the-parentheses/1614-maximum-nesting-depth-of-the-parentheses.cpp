@@ -1,14 +1,16 @@
 class Solution {
 public:
-    int maxDepth(string s) {
-        int ans = 0, d = 0;
-        for (char& c : s) {
+    int maxDepth(std::string s) {
+        int current_depth = 0;
+        int max_depth = 0;
+        for (char c : s) {
             if (c == '(') {
-                ans = max(ans, ++d);
+                current_depth++;
+                max_depth = std::max(max_depth, current_depth);
             } else if (c == ')') {
-                --d;
+                current_depth--;
             }
         }
-        return ans;
+        return max_depth;
     }
 };
