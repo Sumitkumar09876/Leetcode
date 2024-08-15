@@ -1,41 +1,32 @@
 class Solution {
 public:
     double findMedianSortedArrays(vector<int>& nums1, vector<int>& nums2) {
-        // Ensure nums1 is the smaller array
         if (nums1.size() > nums2.size()) {
-            return findMedianSortedArrays(nums2, nums1);
+            swap(nums1, nums2);
         }
-        
         int m = nums1.size();
         int n = nums2.size();
-        int low = 0, high = m;
-        
-        while (low <= high) {
-            int partition1 = (low + high) / 2;
-            int partition2 = (m + n + 1) / 2 - partition1;
-            
-            int maxLeft1 = (partition1 == 0) ? numeric_limits<int>::min() : nums1[partition1 - 1];
-            int minRight1 = (partition1 == m) ? numeric_limits<int>::max() : nums1[partition1];
-            
-            int maxLeft2 = (partition2 == 0) ? numeric_limits<int>::min() : nums2[partition2 - 1];
-            int minRight2 = (partition2 == n) ? numeric_limits<int>::max() : nums2[partition2];
-            
-            // Check if we found the correct partition
+        int left = 0;
+        int right = m;
+        while (left <= right) {
+            int i = (left + right) / 2;
+            int j = (m + n + 1) / 2 - i;
+            int maxLeft1 = (i == 0) ? INT_MIN : nums1[i - 1];
+            int minRight1 = (i == m) ? INT_MAX : nums1[i];
+            int maxLeft2 = (j == 0) ? INT_MIN : nums2[j - 1];
+            int minRight2 = (j == n) ? INT_MAX : nums2[j];
             if (maxLeft1 <= minRight2 && maxLeft2 <= minRight1) {
-                // If the total number of elements is even
                 if ((m + n) % 2 == 0) {
                     return (max(maxLeft1, maxLeft2) + min(minRight1, minRight2)) / 2.0;
                 } else {
                     return max(maxLeft1, maxLeft2);
                 }
             } else if (maxLeft1 > minRight2) {
-                high = partition1 - 1;  // Move towards the left in nums1
+                right = i - 1;
             } else {
-                low = partition1 + 1;   // Move towards the right in nums1
+                left = i + 1;
             }
         }
-        
-        // If the input arrays are invalid, return 0.0 (this line should never be reached)
         return 0.0;
     }
 };
