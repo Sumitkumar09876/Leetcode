@@ -1,40 +1,68 @@
 class Solution {
 public:
     void solveSudoku(vector<vector<char>>& board) {
-        solve(board);
-    }
-
-private:
-    bool solve(vector<vector<char>>& board) {
-        for(int row = 0; row < 9; row++) {
-            for(int col = 0; col < 9; col++) {
-                if(board[row][col] == '.') {
-                    for(char c = '1'; c <= '9'; c++) {
-                        if(isValid(board, row, col, c)) {
-                            board[row][col] = c;
-                            if(solve(board))
-                                return true;
-                            board[row][col] = '.'; // Backtrack if not solvable
-                        }
-                    }
-                    return false; // No valid number found, trigger backtracking
+        // Initialize bitsets for rows, columns, and boxes
+        memset(rowUsed, 0, sizeof(rowUsed));
+        memset(colUsed, 0, sizeof(colUsed));
+        memset(boxUsed, 0, sizeof(boxUsed));
+        emptyCells.clear();
+        
+        // Preprocess the board
+        for(int i = 0; i < 9; ++i) {
+            for(int j = 0; j < 9; ++j) {
+                if(board[i][j] == '.') {
+                    emptyCells.emplace_back(i, j);
+                } else {
+                    int num = board[i][j] - '1';
+                    int k = (i / 3) * 3 + (j / 3);
+                    rowUsed[i] |= (1 << num);
+                    colUsed[j] |= (1 << num);
+                    boxUsed[k] |= (1 << num);
                 }
             }
         }
-        return true; // Puzzle solved
+        
+        // Start solving
+        solve(board, 0);
     }
 
-    bool isValid(vector<vector<char>>& board, int row, int col, char c) {
-        for(int i = 0; i < 9; i++) {
-            // Check row
-            if(board[row][i] == c) return false;
-            // Check column
-            if(board[i][col] == c) return false;
-            // Check 3x3 sub-box
-            int boxRow = 3 * (row / 3) + i / 3;
-            int boxCol = 3 * (col / 3) + i % 3;
-            if(board[boxRow][boxCol] == c) return false;
+private:
+    int rowUsed[9], colUsed[9], boxUsed[9];
+    vector<pair<int, int>> emptyCells;
+    bool solved = false;
+
+    bool solve(vector<vector<char>>& board, int pos) {
+        if(pos == emptyCells.size()) {
+            solved = true;
+            return true;
         }
-        return true;
+
+        // Get the position of the next empty cell
+        int i = emptyCells[pos].first;
+        int j = emptyCells[pos].second;
+        int k = (i / 3) * 3 + (j / 3);
+
+        // Compute possible candidates
+        int used = rowUsed[i] | colUsed[j] | boxUsed[k];
+        for(int num = 0; num < 9; ++num) {
+            if(!(used & (1 << num))) {
+                // Place the number
+                board[i][j] = num + '1';
+                rowUsed[i] |= (1 << num);
+                colUsed[j] |= (1 << num);
+                boxUsed[k] |= (1 << num);
+
+                // Recursive call
+                if(solve(board, pos + 1))
+                    return true;
+
+                // Backtrack
+                board[i][j] = '.';
+                rowUsed[i] &= ~(1 << num);
+                colUsed[j] &= ~(1 << num);
+                boxUsed[k] &= ~(1 << num);
+            }
+        }
+        return false;
     }
 };
